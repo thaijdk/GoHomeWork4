@@ -28,7 +28,7 @@ func (s Student) GetHandler(c *gin.Context) {
 	}
 	defer db.Close()
 
-	stmt, _ := db.Prepare("SELECT id, name FROM todos")
+	stmt, _ := db.Prepare("SELECT id, name FROM student")
 
 	students := []Student{}
 
@@ -56,7 +56,7 @@ func (s Student) GetByIdHandler(c *gin.Context) {
 	}
 	defer db.Close()
 
-	stmt, _ := db.Prepare("SELECT id, name FROM todos WHERE id=$1")
+	stmt, _ := db.Prepare("SELECT id, name FROM student WHERE id=$1")
 
 	id := c.Param("id")
 
