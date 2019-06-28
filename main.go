@@ -13,10 +13,10 @@ func main() {
 	// r.GET("/students", getStudentHandler)
 	// r.POST("/students", postStudentHandler)
 
-	r.GET("/api/todos", getTodosHandler)
-	r.GET("/api/todos/:id", getTodosByIdHandler)
-	r.POST("/api/todos", postTodosHandler)
-	r.DELETE("/api/todos/:id", deleteTodosByIdHandler)
+	r.GET("/api/todos", todo.getTodosHandler)
+	r.GET("/api/todos/:id", todo.getTodosByIdHandler)
+	r.POST("/api/todos", todo.postTodosHandler)
+	r.DELETE("/api/todos/:id", todo.deleteTodosByIdHandler)
 
 	//Add Commit
 
