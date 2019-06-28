@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/thaijdk/GoHomeWork4/database"
 )
 
 type Todo struct {
@@ -14,8 +16,8 @@ type Todo struct {
 	Status string `json:"status`
 }
 
-func getTodosHandler(c *gin.Context) {
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+func (t Todo) GetHandler(c *gin.Context) {
+	db, err := sql.Open("postgres", database.Host)
 	if err != nil {
 		log.Fatal("faltal", err.Error())
 
@@ -42,8 +44,8 @@ func getTodosHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, todos)
 }
 
-func getTodosByIdHandler(c *gin.Context) {
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+func (t Todo) GetByIdHandler(c *gin.Context) {
+	db, err := sql.Open("postgres", database.Host)
 	if err != nil {
 		log.Fatal("faltal", err.Error())
 
@@ -56,7 +58,7 @@ func getTodosByIdHandler(c *gin.Context) {
 
 	row := stmt.QueryRow(id)
 
-	t := Todo{}
+	t = Todo{}
 
 	err2 := row.Scan(&t.ID, &t.Title, &t.Status)
 	if err2 != nil {
@@ -66,8 +68,8 @@ func getTodosByIdHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, t)
 }
 
-func postTodosHandler(c *gin.Context) {
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+func (t Todo) PostHandler(c *gin.Context) {
+	db, err := sql.Open("postgres", database.Host)
 	if err != nil {
 		log.Fatal("faltal", err.Error())
 
@@ -97,8 +99,8 @@ func postTodosHandler(c *gin.Context) {
 	}
 }
 
-func deleteTodosByIdHandler(c *gin.Context) {
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+func (t Todo) DeleteByIdHandler(c *gin.Context) {
+	db, err := sql.Open("postgres", database.Host)
 	if err != nil {
 		log.Fatal("faltal", err.Error())
 
