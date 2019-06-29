@@ -2,18 +2,18 @@ package todo
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/thaijdk/GoHomeWork4/database"
 )
 
 type Todo struct {
-	ID     string `json:"id"`
-	Title  string `json:"title`
-	Status string `json:"status`
+	ID     int    `json:"id"`
+	Title  string `json:"title"`
+	Status string `json:"status"`
 }
 
 func (t Todo) GetHandler(c *gin.Context) {
@@ -39,12 +39,12 @@ func (t Todo) GetHandler(c *gin.Context) {
 		}
 		todos = append(todos, t)
 	}
-	fmt.Println(todos)
 
 	c.JSON(http.StatusOK, todos)
 }
 
 func (t Todo) GetByIdHandler(c *gin.Context) {
+
 	db, err := sql.Open("postgres", database.Host)
 	if err != nil {
 		log.Fatal("faltal", err.Error())
@@ -93,10 +93,48 @@ func (t Todo) PostHandler(c *gin.Context) {
 			log.Fatal("can't scan id", err.Error())
 		}
 
-		c.JSON(http.StatusOK, "Insert Completed")
+		todoVal.ID = id
+
+		c.JSON(http.StatusCreated, todoVal)
 	} else {
-		c.JSON(http.StatusOK, "Empty Input")
+		c.JSON(http.StatusInternalServerError, "Empty Input")
 	}
+}
+
+func (t Todo) UpdateHandler(c *gin.Context) {
+	db, err := sql.Open("postgres", database.Host)
+
+	if err != nil {
+		log.Fatal("faltal", err.Error())
+
+	}
+	defer db.Close()
+
+	todoVal := Todo{}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	todoVal.ID = id
+
+	stmt, err := db.Prepare("UPDATE todos SET title=$2, status=$3  WHERE id= $1;")
+	if err != nil {
+		log.Fatal("prepare error", err.Error())
+	}
+
+	if err := c.ShouldBindJSON(&todoVal); err != nil {
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	if (todoVal.Title != "") && (todoVal.Status != "") {
+		if _, err := stmt.Exec(todoVal.ID, todoVal.Title, todoVal.Status); err != nil {
+			log.Fatal("exec error ", err.Error())
+		}
+	}
+
+	c.JSON(http.StatusOK, todoVal)
+
 }
 
 func (t Todo) DeleteByIdHandler(c *gin.Context) {
@@ -115,5 +153,5 @@ func (t Todo) DeleteByIdHandler(c *gin.Context) {
 		log.Fatal("exec error ", err.Error())
 	}
 
-	c.JSON(http.StatusOK, "delete complete")
+	c.JSON(http.StatusOK, gin.H{"status": "success"})
 }

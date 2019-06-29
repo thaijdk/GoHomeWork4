@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -97,10 +98,48 @@ func (s Student) PostHandler(c *gin.Context) {
 			log.Fatal("can't scan id", err.Error())
 		}
 
-		c.JSON(http.StatusOK, "Insert Completed")
+		studentVal.ID = id
+
+		c.JSON(http.StatusCreated, studentVal)
 	} else {
-		c.JSON(http.StatusOK, "Empty Input")
+		c.JSON(http.StatusInternalServerError, "Empty Input")
 	}
+}
+
+func (s Student) UpdateHandler(c *gin.Context) {
+	db, err := sql.Open("postgres", database.Host)
+
+	if err != nil {
+		log.Fatal("faltal", err.Error())
+
+	}
+	defer db.Close()
+
+	studentVal := Student{}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	studentVal.ID = id
+
+	stmt, err := db.Prepare("UPDATE student SET name=$2 WHERE id= $1;")
+	if err != nil {
+		log.Fatal("prepare error", err.Error())
+	}
+
+	if err := c.ShouldBindJSON(&studentVal); err != nil {
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	if studentVal.Name != "" {
+		if _, err := stmt.Exec(studentVal.ID, studentVal.Name); err != nil {
+			log.Fatal("exec error ", err.Error())
+		}
+	}
+
+	c.JSON(http.StatusOK, studentVal)
+
 }
 
 func (s Student) DeleteByIdHandler(c *gin.Context) {
@@ -119,5 +158,5 @@ func (s Student) DeleteByIdHandler(c *gin.Context) {
 		log.Fatal("exec error ", err.Error())
 	}
 
-	c.JSON(http.StatusOK, "delete complete")
+	c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
